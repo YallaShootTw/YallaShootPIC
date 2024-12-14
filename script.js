@@ -1,4 +1,3 @@
-// script.js
 document.getElementById('extractButton').addEventListener('click', () => {
   const imageInput = document.getElementById('imageInput').files[0];
   
@@ -11,10 +10,14 @@ document.getElementById('extractButton').addEventListener('click', () => {
   reader.onload = () => {
     const image = reader.result;
 
-    // استخدام Tesseract.js
-    Tesseract.recognize(image, 'eng', {
-      logger: info => console.log(info) // لمعرفة تقدم العملية
-    }).then(({ data: { text } }) => {
+    // استخدام Tesseract.js مع دعم اللغة العربية
+    Tesseract.recognize(
+      image,               // صورة الإدخال
+      'ara',               // تحديد اللغة العربية
+      {
+        logger: info => console.log(info) // لمعرفة تقدم العملية
+      }
+    ).then(({ data: { text } }) => {
       document.getElementById('outputText').innerText = text;
     }).catch(error => {
       console.error(error);
