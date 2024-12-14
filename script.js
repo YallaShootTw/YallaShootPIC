@@ -108,13 +108,18 @@ extractButton.addEventListener('click', () => {
   loadingText.style.display = 'block';
   outputText.innerText = '';
 
-  // استدعاء API لتحويل الصورة إلى نص
+  // تجهيز الصورة لإرسالها إلى API
+  const base64Image = croppedImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, '');
+
   fetch('https://api.ocr.space/parse/image', {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
     body: new URLSearchParams({
       apikey: 'K86027703788957', // مفتاح API الخاص بك
-      base64Image: croppedImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, ''),
-      language: 'ara', // دعم اللغة العربية
+      base64Image: base64Image,
+      language: 'ara', // اللغة العربية
     }),
   })
     .then((response) => response.json())
@@ -129,11 +134,12 @@ extractButton.addEventListener('click', () => {
           .join('\n');
         outputText.innerText = cleanedText; // عرض النص النظيف
       } else {
-        alert('لم يتم استخراج النص بنجاح.');
+        alert('لم يتم استخراج النص بنجاح. تأكد من وضوح النص في الصورة.');
       }
     })
     .catch((error) => {
+      loadingText.style.display = 'none';
       console.error(error);
-      alert('حدث خطأ أثناء الاتصال بـ API.');
+      alert('حدث خطأ أثناء الاتصال بـ API. الرجاء المحاولة مرة أخرى.');
     });
 });
