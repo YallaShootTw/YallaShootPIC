@@ -9,16 +9,32 @@ const ctx = canvas.getContext('2d');
 
 let croppedImage = null;
 
-// تحميل الصورة إلى القماش
+// تحميل الصورة إلى القماش (Canvas)
 function loadImage(file) {
   const reader = new FileReader();
   reader.onload = () => {
     const img = new Image();
     img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      canvas.style.display = 'block';
+      // تحديد الحجم المناسب للعرض
+      const maxWidth = 800; // العرض الأقصى
+      const maxHeight = 600; // الارتفاع الأقصى
+      let width = img.width;
+      let height = img.height;
+
+      // ضبط الأبعاد مع الحفاظ على نسبة الأبعاد
+      if (width > maxWidth) {
+        height = (maxWidth / width) * height;
+        width = maxWidth;
+      }
+      if (height > maxHeight) {
+        width = (maxHeight / height) * width;
+        height = maxHeight;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.style.display = 'block'; // عرض القماش
     };
     img.src = reader.result;
   };
@@ -65,6 +81,12 @@ function cropImage() {
   const width = endX - startX;
   const height = endY - startY;
 
+  // تأكد من أن الأبعاد صحيحة
+  if (width <= 0 || height <= 0) {
+    alert('يرجى تحديد مساحة صحيحة للقص.');
+    return;
+  }
+
   const croppedCanvas = document.createElement('canvas');
   croppedCanvas.width = width;
   croppedCanvas.height = height;
@@ -73,6 +95,7 @@ function cropImage() {
   croppedCtx.drawImage(canvas, startX, startY, width, height, 0, 0, width, height);
 
   croppedImage = croppedCanvas.toDataURL('image/png'); // حفظ الصورة المقصوصة
+  alert('تم قص الصورة بنجاح.');
 }
 
 // تحويل الصورة باستخدام OCR.Space API
@@ -88,14 +111,11 @@ extractButton.addEventListener('click', () => {
   // استدعاء API لتحويل الصورة إلى نص
   fetch('https://api.ocr.space/parse/image', {
     method: 'POST',
-    body: JSON.stringify({
+    body: new URLSearchParams({
       apikey: 'K86027703788957', // مفتاح API الخاص بك
-      base64Image: croppedImage.replace(/^data:image\/(png|jpg|jpeg);base64,/, ''),
+      base64Image: croppedImage.replace(/^data:image\/(png|jpeg|jpg);base64,/, ''),
       language: 'ara', // دعم اللغة العربية
     }),
-    headers: {
-      'Content-Type': 'application/json',
-    },
   })
     .then((response) => response.json())
     .then((data) => {
